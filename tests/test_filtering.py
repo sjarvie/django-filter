@@ -18,6 +18,7 @@ from django_filters.filters import (
     DateFromToRangeFilter,
     DateRangeFilter,
     DateTimeFromToRangeFilter,
+    IsoDateTimeFromToRangeFilter,
     DurationFilter,
     LookupChoiceFilter,
     ModelChoiceFilter,
@@ -59,6 +60,7 @@ class CharFilterTests(TestCase):
             title="Snowcrash", price='1.00', average_rating=3.0)
 
         class F(FilterSet):
+
             class Meta:
                 model = Book
                 fields = ['title']
@@ -83,6 +85,7 @@ class IntegerFilterTest(TestCase):
         b3 = BankAccount.objects.create(amount_saved=10, **default_values)
 
         class F(FilterSet):
+
             class Meta:
                 model = BankAccount
                 fields = ['amount_saved']
@@ -105,6 +108,7 @@ class BooleanFilterTests(TestCase):
         User.objects.create(username='aaron', is_active=False)
 
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['is_active']
@@ -143,6 +147,7 @@ class ChoiceFilterTests(TestCase):
 
     def test_filtering(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['status']
@@ -190,6 +195,7 @@ class ChoiceFilterTests(TestCase):
 
     def test_filtering_on_empty_choice(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['status']
@@ -341,6 +347,7 @@ class DateFilterTests(TestCase):
         Comment.objects.create(author=u, time=timestamp, date=last_week)
 
         class F(FilterSet):
+
             class Meta:
                 model = Comment
                 fields = ['date']
@@ -365,6 +372,7 @@ class TimeFilterTests(TestCase):
         Comment.objects.create(author=u, time=fixed_time, date=today)
 
         class F(FilterSet):
+
             class Meta:
                 model = Comment
                 fields = ['time']
@@ -391,6 +399,7 @@ class DateTimeFilterTests(TestCase):
         check_dt = str(local_ten_min_ago)
 
         class F(FilterSet):
+
             class Meta:
                 model = Article
                 fields = ['published']
@@ -421,6 +430,7 @@ class DurationFilterTests(TestCase):
     See https://en.wikipedia.org/wiki/ISO_8601#Durations
 
     """
+
     def setUp(self):
         self.r1 = SpacewalkRecord.objects.create(
             astronaut="Anatoly Solovyev",
@@ -441,6 +451,7 @@ class DurationFilterTests(TestCase):
     def test_filtering(self):
 
         class F(FilterSet):
+
             class Meta:
                 model = SpacewalkRecord
                 fields = ['duration']
@@ -466,6 +477,7 @@ class DurationFilterTests(TestCase):
     def test_filtering_with_single_lookup_expr_dictionary(self):
 
         class F(FilterSet):
+
             class Meta:
                 model = SpacewalkRecord
                 fields = {'duration': ['gt', 'gte', 'lt', 'lte']}
@@ -516,6 +528,7 @@ class ModelChoiceFilterTests(TestCase):
         Comment.objects.create(author=jacob, time=time, date=date)
 
         class F(FilterSet):
+
             class Meta:
                 model = Comment
                 fields = ['author']
@@ -531,6 +544,7 @@ class ModelChoiceFilterTests(TestCase):
         Article.objects.create(author=alex, published=now())
 
         class F(FilterSet):
+
             class Meta:
                 model = Article
                 fields = ['author', 'name']
@@ -589,6 +603,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_filtering(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books']
@@ -609,6 +624,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
     @override_settings(FILTERS_NULL_CHOICE_LABEL='No Favorites')
     def test_filtering_null(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books']
@@ -620,6 +636,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_dictionary(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = {'favorite_books': ['exact']}
@@ -639,6 +656,7 @@ class ModelMultipleChoiceFilterTests(TestCase):
 
     def test_filtering_on_all_of_subset_of_choices(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books']
@@ -703,6 +721,7 @@ class NumberFilterTests(TestCase):
 
     def test_filtering(self):
         class F(FilterSet):
+
             class Meta:
                 model = Book
                 fields = ['price']
@@ -977,6 +996,32 @@ class DateTimeFromToRangeFilterTests(TestCase):
         self.assertEqual(len(results.qs), 2)
 
 
+class IsoDateTimeFromToRangeFilterTests(TestCase):
+
+    def test_filtering(self):
+        tz = timezone.get_current_timezone()
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 1, 10, 0, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 2, 12, 45, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 18, 15, tzinfo=tz))
+        Article.objects.create(
+            published=datetime.datetime(2016, 1, 3, 19, 30, tzinfo=tz))
+
+        class F(FilterSet):
+            published = IsoDateTimeFromToRangeFilter()
+
+            class Meta:
+                model = Article
+                fields = ['published']
+
+        results = F(data={
+            'published_after': '2016-01-02T10:00:00.000',
+            'published_before': '2016-01-03T19:00:00.000'})
+        self.assertEqual(len(results.qs), 2)
+
+
 class TimeRangeFilterTests(TestCase):
 
     def test_filtering(self):
@@ -1112,6 +1157,7 @@ class O2ORelationshipTests(TestCase):
     def test_o2o_relation(self):
 
         class F(FilterSet):
+
             class Meta:
                 model = Profile
                 fields = ('account',)
@@ -1126,6 +1172,7 @@ class O2ORelationshipTests(TestCase):
     def test_o2o_relation_dictionary(self):
 
         class F(FilterSet):
+
             class Meta:
                 model = Profile
                 fields = {'account': ['exact'], }
@@ -1139,6 +1186,7 @@ class O2ORelationshipTests(TestCase):
 
     def test_reverse_o2o_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = Account
                 fields = ('profile',)
@@ -1152,6 +1200,7 @@ class O2ORelationshipTests(TestCase):
 
     def test_o2o_relation_attribute(self):
         class F(FilterSet):
+
             class Meta:
                 model = Profile
                 fields = ('account__in_good_standing',)
@@ -1165,6 +1214,7 @@ class O2ORelationshipTests(TestCase):
 
     def test_o2o_relation_attribute2(self):
         class F(FilterSet):
+
             class Meta:
                 model = Profile
                 fields = ('account__in_good_standing', 'account__friendly',)
@@ -1178,6 +1228,7 @@ class O2ORelationshipTests(TestCase):
 
     def test_reverse_o2o_relation_attribute(self):
         class F(FilterSet):
+
             class Meta:
                 model = Account
                 fields = ('profile__likes_coffee',)
@@ -1191,6 +1242,7 @@ class O2ORelationshipTests(TestCase):
 
     def test_reverse_o2o_relation_attribute2(self):
         class F(FilterSet):
+
             class Meta:
                 model = Account
                 fields = ('profile__likes_coffee', 'profile__likes_tea')
@@ -1216,6 +1268,7 @@ class FKRelationshipTests(TestCase):
             company=company1, open_days="monday", zip_code="12345")
 
         class F(FilterSet):
+
             class Meta:
                 model = Location
                 fields = ('company',)
@@ -1240,6 +1293,7 @@ class FKRelationshipTests(TestCase):
                                author=jacob, time=time, date=date)
 
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['comments']
@@ -1269,6 +1323,7 @@ class FKRelationshipTests(TestCase):
         Article.objects.create(author=alex, published=now_dt)
 
         class F(FilterSet):
+
             class Meta:
                 model = Article
                 fields = ['author__username']
@@ -1299,6 +1354,7 @@ class FKRelationshipTests(TestCase):
                                author=jacob, time=time, date=date)
 
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['comments__text']
@@ -1330,6 +1386,7 @@ class FKRelationshipTests(TestCase):
             company=company, open_days="WEEKEND", zip_code="11111")
 
         class F(FilterSet):
+
             class Meta:
                 model = Company
                 fields = ('locations__zip_code', 'locations__open_days')
@@ -1358,6 +1415,7 @@ class M2MRelationshipTests(TestCase):
 
     def test_m2m_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books']
@@ -1377,6 +1435,7 @@ class M2MRelationshipTests(TestCase):
 
     def test_reverse_m2m_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = Book
                 fields = ['lovers']
@@ -1399,6 +1458,7 @@ class M2MRelationshipTests(TestCase):
 
     def test_m2m_relation_attribute(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books__title']
@@ -1437,6 +1497,7 @@ class M2MRelationshipTests(TestCase):
 
     def test_reverse_m2m_relation_attribute(self):
         class F(FilterSet):
+
             class Meta:
                 model = Book
                 fields = ['lovers__username']
@@ -1478,6 +1539,7 @@ class M2MRelationshipTests(TestCase):
     @unittest.expectedFailure
     def test_m2m_relation_multiple_attributes(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['favorite_books__price',
@@ -1497,6 +1559,7 @@ class M2MRelationshipTests(TestCase):
     @unittest.expectedFailure
     def test_reverse_m2m_relation_multiple_attributes(self):
         class F(FilterSet):
+
             class Meta:
                 model = Book
                 fields = ['lovers__status', 'lovers__username']
@@ -1532,6 +1595,7 @@ class SymmetricalSelfReferentialRelationshipTests(TestCase):
 
     def test_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = Node
                 fields = ['adjacents']
@@ -1555,6 +1619,7 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
 
     def test_forward_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = DirectedNode
                 fields = ['outbound_nodes']
@@ -1565,6 +1630,7 @@ class NonSymmetricalSelfReferentialRelationshipTests(TestCase):
 
     def test_reverse_relation(self):
         class F(FilterSet):
+
             class Meta:
                 model = DirectedNode
                 fields = ['inbound_nodes']
@@ -1587,6 +1653,7 @@ class TransformedQueryExpressionFilterTests(TestCase):
         Article.objects.create(author=u, published=before_5pm)
 
         class F(FilterSet):
+
             class Meta:
                 model = Article
                 fields = {'published': ['hour__gte']}
@@ -1674,6 +1741,7 @@ class CSVFilterTests(TestCase):
         Article.objects.create(author=u2, published=before_5pm)
 
         class UserFilter(FilterSet):
+
             class Meta:
                 model = User
                 fields = {
@@ -1682,6 +1750,7 @@ class CSVFilterTests(TestCase):
                 }
 
         class ArticleFilter(FilterSet):
+
             class Meta:
                 model = Article
                 fields = {
@@ -1783,6 +1852,7 @@ class CSVFilterTests(TestCase):
 class CSVRangeFilterTests(TestCase):
 
     class ArticleFilter(FilterSet):
+
         class Meta:
             model = Article
             fields = {
@@ -1908,6 +1978,7 @@ class MiscFilterSetTests(TestCase):
 
     def test_filtering_with_multiple_filters(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['status', 'username']
@@ -1941,6 +2012,7 @@ class MiscFilterSetTests(TestCase):
 
     def test_qs_count(self):
         class F(FilterSet):
+
             class Meta:
                 model = User
                 fields = ['status']
